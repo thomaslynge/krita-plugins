@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=animlayers
+X-Krita-Manual=Manual.html
+X-Python-2-Compatible=true
+Name=Anim Layers
+Comment=Plugin for anmating with layers
