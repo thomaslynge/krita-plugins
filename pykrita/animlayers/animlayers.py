@@ -36,15 +36,23 @@ class AnimLayersDocker(DockWidget):
 		grid.addWidget(lblKey, 1, 0)
 		grid.addWidget(self.txtKey, 1, 1)
 		
+		lblSpd = QLabel("Spd")
+		grid.addWidget(lblSpd, 1, 2, 1, 1)
 		self.txtSpeed = QLineEdit()
 		self.txtSpeed.setText(str(self.speedDef))
-		grid.addWidget(self.txtSpeed, 1, 2, 1, 2)
+		grid.addWidget(self.txtSpeed, 1, 3, 1, 1)
 		
 		self.cbLoop = QCheckBox()
-		self.cbLoop.setText("Loop")
+		self.cbLoop.setText("Ping Pong")
 		self.cbLoop.setChecked(True)
 		grid.addWidget(self.cbLoop, 2, 0, 1, 2)
-		
+
+		lblFrm = QLabel("Frame")
+		grid.addWidget(lblFrm, 2, 2, 1, 1)
+		self.txtFrame = QLineEdit()
+		self.txtFrame.setText("")
+		grid.addWidget(self.txtFrame, 2, 3, 1, 1)
+	
 		btnStepBack = QPushButton("Step back")
 		btnStepBack.clicked.connect(self.stepBackClicked)
 		grid.addWidget(btnStepBack, 3, 0, 1, 2)
@@ -52,19 +60,19 @@ class AnimLayersDocker(DockWidget):
 		btnStep.clicked.connect(self.stepClicked)
 		grid.addWidget(btnStep, 3, 2, 1, 2)
 
-		btnStop = QPushButton("Stop")
-		btnStop.clicked.connect(self.stopClicked)
-		grid.addWidget(btnStop, 4, 0, 1, 2)
-		btnPlay = QPushButton("Play")
-		btnPlay.clicked.connect(self.playClicked)
-		grid.addWidget(btnPlay, 4, 2, 1, 2)
+		#btnStop = QPushButton("Stop")
+		#btnStop.clicked.connect(self.stopClicked)
+		#grid.addWidget(btnStop, 4, 0, 1, 2)
+		self.btnPlay = QPushButton("Play")
+		self.btnPlay.clicked.connect(self.playClicked)
+		grid.addWidget(self.btnPlay, 4, 0, 1, 4)
 		
-		self.lbl = QLabel()
-		grid.addWidget(self.lbl, 5, 0, 1, 2)
-
-		btnRefresh = QPushButton("Refresh")
+		btnRefresh = QPushButton("Refresh frames")
 		btnRefresh.clicked.connect(self.refreshClicked)
-		grid.addWidget(btnRefresh, 6, 0, 1, 2)
+		grid.addWidget(btnRefresh, 5, 0, 1, 4)
+	
+		self.lbl = QLabel()
+		grid.addWidget(self.lbl, 6, 0, 1, 4)
 	
 		self.layout = grid
 		widget.setLayout(grid)
@@ -81,9 +89,9 @@ class AnimLayersDocker(DockWidget):
 	def playClicked(self):
 		if self.playing == False:
 			self.play()
-
-	def stopClicked(self):
-		self.stop()
+		else:
+			self.stop()
+		self.updateBtnPlay()
 	
 	def play(self):
 		self.playing = True
@@ -105,8 +113,19 @@ class AnimLayersDocker(DockWidget):
 				except ValueError:
 					speed = self.speedDef
 			time.sleep(speed / 1000)
-			self.step(1)	
+			self.step(1)
+		self.endAnim()
 	
+	def endAnim(self):
+		if self.txtFrame.text() != "":
+			frame = -1
+			try:
+				frame = int(self.txtFrame.text())
+			except ValueError:
+				frame = -1
+			if frame >= 0 and frame < len(self.frames):
+				self.switchFrame(frame)
+		
 	def stepBackClicked(self):
 		if self.frameIdx == -1:
 			self.frameIdx = len(self.frames)
@@ -114,7 +133,7 @@ class AnimLayersDocker(DockWidget):
 		
 	def stepClicked(self):
 		self.step(1)
-	
+		
 	def step(self, dir):
 		self.refresh(False)
 		if self.doc == None:
@@ -142,10 +161,13 @@ class AnimLayersDocker(DockWidget):
 				newIdx = min(lastIdx,1)
 			else:
 				newIdx = lastIdx
-			
+
+		self.switchFrame(newIdx)
+	
+	def switchFrame(self, newIdx):
 		self.hideFrame(self.frames[self.frameIdx])
 		self.frameIdx = newIdx
-		self.showFrame(self.frames[self.frameIdx])	
+		self.showFrame(self.frames[self.frameIdx])		
 		
 	def refresh(self, forceBuild):
 		self.clearOutput()
@@ -166,7 +188,7 @@ class AnimLayersDocker(DockWidget):
 			
 		if requestBuild == True:
 			self.buildFrames(doc)
-		
+					
 	def buildFrames(self, doc):
 		self.frameIdx = -1
 		self.frames = []
@@ -205,6 +227,13 @@ class AnimLayersDocker(DockWidget):
 		#reply = QMessageBox.question(self, 'Message',
 		#	text, QMessageBox.Yes | 
 		#	QMessageBox.No, QMessageBox.No)
+	
+	def updateBtnPlay(self):
+		if self.playing:
+			self.btnPlay.setText("Stop")
+		else:
+			self.btnPlay.setText("Play")
+
 	
 	def canvasChanged(self, canvas):
 		"""
