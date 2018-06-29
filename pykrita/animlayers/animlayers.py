@@ -4,8 +4,7 @@ import os.path
 import time
 import re
 import threading
-from PyQt5.QtWidgets import (QWidget, QLabel, QMessageBox, QPushButton, QToolTip, QHBoxLayout, QVBoxLayout, QListView, QLineEdit, QTextEdit, QGridLayout, QCheckBox)
-from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QGridLayout, QCheckBox)
 from krita import (Krita, Extension, DockWidget, DockWidgetFactory, DockWidgetFactoryBase)
 
 class AnimLayersDocker(DockWidget):
@@ -194,7 +193,6 @@ class AnimLayersDocker(DockWidget):
 		self.frames = []
 		nodes = doc.rootNode().childNodes()
 		regexNode = r'^(' + re.escape(self.key) + r'\s)(.*)'
-		self.output("Regex: " + regexNode)
 		for node in nodes:
 			if re.search(regexNode, node.name(), re.I):
 				self.frames.insert(0,node)
@@ -224,9 +222,6 @@ class AnimLayersDocker(DockWidget):
 	def output(self, text):
 		curr = self.lbl.text()
 		self.lbl.setText(curr + text + '\n')
-		#reply = QMessageBox.question(self, 'Message',
-		#	text, QMessageBox.Yes | 
-		#	QMessageBox.No, QMessageBox.No)
 	
 	def updateBtnPlay(self):
 		if self.playing:
@@ -234,14 +229,7 @@ class AnimLayersDocker(DockWidget):
 		else:
 			self.btnPlay.setText("Play")
 
-	
 	def canvasChanged(self, canvas):
-		"""
-		Override canvasChanged from :class:`DockWidget`.
-		This gets called when the canvas changes.
-		You can also access the active canvas via :func:`DockWidget.canvas`
-		Parameter `canvas` can be null if the last document is closed
-		"""
-		#self._label.setText("AnimLayersDocker: canvas changed")		
-				
+		pass
+		
 Application.addDockWidgetFactory(DockWidgetFactory("animlayers", DockWidgetFactoryBase.DockRight, AnimLayersDocker))
