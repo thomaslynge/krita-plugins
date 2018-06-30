@@ -11,7 +11,7 @@ You install the plugin by placing the animlayers folder and animlayers.desktop f
 
 You animate a specific range of layers by prefixing the layer name with the same letters. For example *PL * then all the layers where the name starts with *PL * will be part of the animation. In the AnimLayers window you enter *PL* in the Key field.
 
-[[https://github.com/thomaslynge/krita-plugins/blob/master/img/animlayers.png|alt=AnimLayers]]
+![Picture](https://github.com/thomaslynge/krita-plugins/blob/master/img/animlayers.png)
 
 *Key*
 The layer starts with this key.
