@@ -7,6 +7,11 @@ import threading
 from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QGridLayout, QCheckBox)
 from krita import (Krita, Extension, DockWidget, DockWidgetFactory, DockWidgetFactoryBase)
 
+class layer:
+	def __init__(self, node, visible):
+		self.node = node
+		self.visible = visible
+
 class AnimLayersDocker(DockWidget):
 
 	def __init__(self):
@@ -17,10 +22,13 @@ class AnimLayersDocker(DockWidget):
 		self.dir = 1
 		self.frameIdx = -1
 		self.frames = []
-		self.key = ""
+		self.layers = []
+		self.layer = None
 		self.playing = False
+		self.outputlines = []
+		self.outputlinescnt = []
 		
-		self.setWindowTitle("Anim Layers")
+		self.setWindowTitle('AnimLayers')
 		self.initUI()
 
 	def initUI(self):
@@ -28,62 +36,57 @@ class AnimLayersDocker(DockWidget):
 		widget.setContentsMargins(10, 10 , 10, 10)
 		grid = QGridLayout()
 		grid.setSpacing(10)
-				
+		
+		row = 1
 		lblKey = QLabel("Key")
 		self.txtKey = QLineEdit()
 		self.txtKey.setText("F")
-		grid.addWidget(lblKey, 1, 0)
-		grid.addWidget(self.txtKey, 1, 1)
+		grid.addWidget(lblKey, row, 0)
+		grid.addWidget(self.txtKey, row, 1)
+
+		btnGetKey = QPushButton("Get key")
+		btnGetKey.clicked.connect(self.getKeyClicked)
+		grid.addWidget(btnGetKey, row, 2, 1, 2)
 		
-		lblSpd = QLabel("Spd")
-		grid.addWidget(lblSpd, 1, 2, 1, 1)
+		row += 1
+		btnStepBack = QPushButton("<")
+		btnStepBack.clicked.connect(self.stepBackClicked)
+		grid.addWidget(btnStepBack, row, 0, 1, 2)
+		btnStep = QPushButton(">")
+		btnStep.clicked.connect(self.stepClicked)
+		grid.addWidget(btnStep, row, 2, 1, 2)
+		
+		row += 1
+		self.btnPlay = QPushButton()
+		self.btnPlay.clicked.connect(self.playClicked)
+		self.updateBtnPlay()
+		grid.addWidget(self.btnPlay, row, 0, 1, 4)
+		
+		row += 1
+		self.cbLoop = QCheckBox()
+		self.cbLoop.setText("Pong loop")
+		self.cbLoop.setChecked(True)
+		grid.addWidget(self.cbLoop, row, 0, 1, 2)
+
+		lblSpd = QLabel("Speed")
+		grid.addWidget(lblSpd, row, 2, 1, 1)
 		self.txtSpeed = QLineEdit()
 		self.txtSpeed.setText(str(self.speedDef))
-		grid.addWidget(self.txtSpeed, 1, 3, 1, 1)
-		
-		self.cbLoop = QCheckBox()
-		self.cbLoop.setText("Ping Pong")
-		self.cbLoop.setChecked(True)
-		grid.addWidget(self.cbLoop, 2, 0, 1, 2)
+		grid.addWidget(self.txtSpeed, row, 3, 1, 1)
 
-		lblFrm = QLabel("Frame")
-		grid.addWidget(lblFrm, 2, 2, 1, 1)
-		self.txtFrame = QLineEdit()
-		self.txtFrame.setText("")
-		grid.addWidget(self.txtFrame, 2, 3, 1, 1)
-	
-		btnStepBack = QPushButton("Step back")
-		btnStepBack.clicked.connect(self.stepBackClicked)
-		grid.addWidget(btnStepBack, 3, 0, 1, 2)
-		btnStep = QPushButton("Step")
-		btnStep.clicked.connect(self.stepClicked)
-		grid.addWidget(btnStep, 3, 2, 1, 2)
-
-		#btnStop = QPushButton("Stop")
-		#btnStop.clicked.connect(self.stopClicked)
-		#grid.addWidget(btnStop, 4, 0, 1, 2)
-		self.btnPlay = QPushButton("Play")
-		self.btnPlay.clicked.connect(self.playClicked)
-		grid.addWidget(self.btnPlay, 4, 0, 1, 4)
-		
-		btnRefresh = QPushButton("Refresh frames")
-		btnRefresh.clicked.connect(self.refreshClicked)
-		grid.addWidget(btnRefresh, 5, 0, 1, 4)
-	
+		row += 1
 		self.lbl = QLabel()
-		grid.addWidget(self.lbl, 6, 0, 1, 4)
+		grid.addWidget(self.lbl, row, 0, 1, 4)
 	
 		self.layout = grid
 		widget.setLayout(grid)
 		self.baseWidget = widget
 		self.setWidget(widget)
 	
-	def refreshClicked(self):
-		self.dir = 1
-		self.refresh(True)
-	
-	def getKey(self):
-		return self.txtKey.text().strip().lower()
+	def getKeyClicked(self):
+		name = Application.activeDocument().activeNode().name()
+		parts = name.split(" ",1)
+		self.txtKey.setText(parts[0])
 
 	def playClicked(self):
 		if self.playing == False:
@@ -94,6 +97,7 @@ class AnimLayersDocker(DockWidget):
 	
 	def play(self):
 		self.playing = True
+		self.buildFrames()
 		self.stop_event=threading.Event()
 		self.c_thread=threading.Thread(target=self.playEvent, args=(self.stop_event,))
 		self.c_thread.start()
@@ -113,18 +117,16 @@ class AnimLayersDocker(DockWidget):
 					speed = self.speedDef
 			time.sleep(speed / 1000)
 			self.step(1)
-		self.endAnim()
-	
-	def endAnim(self):
-		if self.txtFrame.text() != "":
-			frame = -1
-			try:
-				frame = int(self.txtFrame.text())
-			except ValueError:
-				frame = -1
-			if frame >= 0 and frame < len(self.frames):
-				self.switchFrame(frame)
 		
+		idx = 0
+		for layer in self.layers:
+			layer.node.setVisible(layer.visible)
+			if layer.visible:
+				self.frameIdx = idx
+			idx += 1
+		if self.layer != None:
+			Application.activeDocument().setActiveNode(self.layer)			
+			
 	def stepBackClicked(self):
 		if self.frameIdx == -1:
 			self.frameIdx = len(self.frames)
@@ -132,11 +134,10 @@ class AnimLayersDocker(DockWidget):
 		
 	def stepClicked(self):
 		self.step(1)
-		
+
 	def step(self, dir):
-		self.refresh(False)
-		if self.doc == None:
-			return
+		if len(self.frames) == 0:
+			self.buildFrames()
 
 		lastIdx = len(self.frames) - 1
 		if lastIdx < 0:
@@ -147,7 +148,6 @@ class AnimLayersDocker(DockWidget):
 			self.dir = 1
 		
 		newIdx = self.frameIdx + self.dir * dir
-		
 		if newIdx > lastIdx:
 			if loop:
 				self.dir = -1 * dir
@@ -164,42 +164,33 @@ class AnimLayersDocker(DockWidget):
 		self.switchFrame(newIdx)
 	
 	def switchFrame(self, newIdx):
-		self.hideFrame(self.frames[self.frameIdx])
+		prevFrame = self.frames[self.frameIdx]
+		self.hideFrame(prevFrame)
 		self.frameIdx = newIdx
-		self.showFrame(self.frames[self.frameIdx])		
-		
-	def refresh(self, forceBuild):
-		self.clearOutput()
-		doc = Application.activeDocument()
-		requestBuild = forceBuild
-		
-		if self.key != self.getKey():
-			self.key = self.getKey()
-			requestBuild = True
-		
-		if doc == None:
-			self.doc = None
-			return		
-		if doc != self.doc:
-			self.doc = doc
-			self.dir = 1
-			requestBuild = True
-			
-		if requestBuild == True:
-			self.buildFrames(doc)
-					
-	def buildFrames(self, doc):
+		if self.playing == False:
+			Application.activeDocument().setActiveNode(self.frames[self.frameIdx])
+			idx = 0
+			for frame in self.frames:
+				if idx != newIdx and frame.visible():
+					frame.setVisible(False)
+				idx += 1		
+		self.showFrame(self.frames[self.frameIdx])
+
+	def buildFrames(self):
 		self.frameIdx = -1
 		self.frames = []
-		nodes = doc.rootNode().childNodes()
-		regexNode = r'^(' + re.escape(self.key) + r'\s)(.*)'
+		self.layers = []
+		adoc = Application.activeDocument()
+		nodes = adoc.rootNode().childNodes()
+		regexNode = r'^(' + re.escape(self.getKey()) + r'\s)(.*)'
 		for node in nodes:
 			if re.search(regexNode, node.name(), re.I):
 				self.frames.insert(0,node)
-		
+				self.layers.insert(0, layer(node, node.visible()))
+		self.layer = adoc.activeNode()
 		if len(self.frames)==0:
 			return
-
+			
 		idx = 0	
 		for frame in self.frames:
 			if self.frameIdx == -1 and frame.visible():
@@ -208,26 +199,44 @@ class AnimLayersDocker(DockWidget):
 			else:
 				self.hideFrame(frame)
 			idx = idx + 1
-		
+
 	def showFrame(self, frame):
 		frame.setVisible(True)
 		frame.rotateNode(math.degrees(0))		
 
 	def hideFrame(self, frame):
 		frame.setVisible(False)
-		
-	def clearOutput(self):
-		self.lbl.setText("");
-	
-	def output(self, text):
-		curr = self.lbl.text()
-		self.lbl.setText(curr + text + '\n')
-	
+
 	def updateBtnPlay(self):
 		if self.playing:
 			self.btnPlay.setText("Stop")
 		else:
 			self.btnPlay.setText("Play")
+
+	def getKey(self):
+		return self.txtKey.text().strip().lower()
+
+	def clearOutput(self):
+		self.outputlines = []
+		self.outputlinescnt = []
+		self.lbl.setText("")
+	
+	def output(self, text):
+		if len(self.outputlines) > 0 and self.outputlines[0] == text:
+			self.outputlinescnt[0] += 1
+		else:		
+			self.outputlines.insert(0, text)
+			self.outputlinescnt.insert(0,1)
+		
+		lt = ""
+		idx = 0
+		for l in self.outputlines:
+			if self.outputlinescnt[idx] > 1:
+				lt += l + ' ('  + str(self.outputlinescnt[idx]) + ')\n'
+			else:			
+				lt += l + '\n'
+			idx += 1
+		self.lbl.setText(lt)
 
 	def canvasChanged(self, canvas):
 		pass
