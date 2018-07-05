@@ -1,3 +1,5 @@
+# AnimLayers version 1.1
+# https://github.com/thomaslynge/krita-plugins
 import sys
 import math
 import os.path
@@ -82,11 +84,13 @@ class AnimLayersDocker(DockWidget):
 		widget.setLayout(grid)
 		self.baseWidget = widget
 		self.setWidget(widget)
-	
+
 	def getKeyClicked(self):
-		name = Application.activeDocument().activeNode().name()
-		parts = name.split(" ",1)
-		self.txtKey.setText(parts[0])
+		doc = Application.activeDocument()
+		if doc != None:
+			name = doc.activeNode().name()
+			parts = name.split(" ",1)
+			self.txtKey.setText(parts[0])
 
 	def playClicked(self):
 		if self.playing == False:
@@ -125,7 +129,9 @@ class AnimLayersDocker(DockWidget):
 				self.frameIdx = idx
 			idx += 1
 		if self.layer != None:
-			Application.activeDocument().setActiveNode(self.layer)			
+			doc = Application.activeDocument()
+			if doc != None:
+				doc.setActiveNode(self.layer)			
 			
 	def stepBackClicked(self):
 		if self.frameIdx == -1:
@@ -168,37 +174,40 @@ class AnimLayersDocker(DockWidget):
 		self.hideFrame(prevFrame)
 		self.frameIdx = newIdx
 		if self.playing == False:
-			Application.activeDocument().setActiveNode(self.frames[self.frameIdx])
-			idx = 0
-			for frame in self.frames:
-				if idx != newIdx and frame.visible():
-					frame.setVisible(False)
-				idx += 1		
+			doc = Application.activeDocument()
+			if doc != None:
+				doc.setActiveNode(self.frames[self.frameIdx])
+				idx = 0
+				for frame in self.frames:
+					if idx != newIdx and frame.visible():
+						frame.setVisible(False)
+					idx += 1		
 		self.showFrame(self.frames[self.frameIdx])
 
 	def buildFrames(self):
 		self.frameIdx = -1
 		self.frames = []
 		self.layers = []
-		adoc = Application.activeDocument()
-		nodes = adoc.rootNode().childNodes()
-		regexNode = r'^(' + re.escape(self.getKey()) + r'\s)(.*)'
-		for node in nodes:
-			if re.search(regexNode, node.name(), re.I):
-				self.frames.insert(0,node)
-				self.layers.insert(0, layer(node, node.visible()))
-		self.layer = adoc.activeNode()
-		if len(self.frames)==0:
-			return
+		doc = Application.activeDocument()
+		if doc != None:
+			nodes = doc.rootNode().childNodes()
+			regexNode = r'^(' + re.escape(self.getKey()) + r'\s)(.*)'
+			for node in nodes:
+				if re.search(regexNode, node.name(), re.I):
+					self.frames.insert(0,node)
+					self.layers.insert(0, layer(node, node.visible()))
+			self.layer = doc.activeNode()
+			if len(self.frames)==0:
+				return
 			
-		idx = 0	
-		for frame in self.frames:
-			if self.frameIdx == -1 and frame.visible():
-				self.frameIdx = idx
-				self.showFrame(frame)
-			else:
-				self.hideFrame(frame)
-			idx = idx + 1
+			idx = 0	
+			for frame in self.frames:
+				if self.frameIdx == -1 and frame.visible():
+					self.frameIdx = idx
+					self.showFrame(frame)
+				else:
+					self.hideFrame(frame)
+				idx = idx + 1
 
 	def showFrame(self, frame):
 		frame.setVisible(True)
@@ -240,5 +249,5 @@ class AnimLayersDocker(DockWidget):
 
 	def canvasChanged(self, canvas):
 		pass
-		
+	
 Application.addDockWidgetFactory(DockWidgetFactory("animlayers", DockWidgetFactoryBase.DockRight, AnimLayersDocker))
