@@ -9,10 +9,44 @@ import threading
 from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QLineEdit, QGridLayout, QCheckBox)
 from krita import (Krita, Extension, DockWidget, DockWidgetFactory, DockWidgetFactoryBase)
 
+animlayersinst = None
+
 class layer:
 	def __init__(self, node, visible):
 		self.node = node
 		self.visible = visible
+
+def animlayersplay():
+	global animlayersinst
+	if animlayersinst != None:
+		animlayersinst.playClicked()
+
+def animlayersstepforth():
+	global animlayersinst
+	if animlayersinst != None:
+		animlayersinst.stepClicked()
+
+def animlayersstepback():
+	global animlayersinst
+	if animlayersinst != None:
+		animlayersinst.stepBackClicked()
+
+class AnimLayersExtension(Extension):
+	def __init__(self, parent):
+		super(AnimLayersExtension, self).__init__(parent)
+
+	def setup(self):
+		pass
+
+	def createActions(self, window):
+		actionplay = window.createAction("animlayers_play", i18n("Play"))
+		actionplay.triggered.connect(animlayersplay)
+		actionstepforth = window.createAction("animlayers_stepforth", i18n("Step forth"))
+		actionstepforth.triggered.connect(animlayersstepforth)
+		actionstepback = window.createAction("animlayers_stepback", i18n("Step back"))
+		actionstepback.triggered.connect(animlayersstepback)
+
+Scripter.addExtension(AnimLayersExtension(Krita.instance()))
 
 class AnimLayersDocker(DockWidget):
 
@@ -30,8 +64,11 @@ class AnimLayersDocker(DockWidget):
 		self.outputlines = []
 		self.outputlinescnt = []
 		
-		self.setWindowTitle('AnimLayers')
+		self.setWindowTitle(i18n("AnimLayers"))
 		self.initUI()
+
+		global animlayersinst
+		animlayersinst = self		
 
 	def initUI(self):
 		widget = QWidget()
@@ -249,5 +286,5 @@ class AnimLayersDocker(DockWidget):
 
 	def canvasChanged(self, canvas):
 		pass
-	
+
 Application.addDockWidgetFactory(DockWidgetFactory("animlayers", DockWidgetFactoryBase.DockRight, AnimLayersDocker))

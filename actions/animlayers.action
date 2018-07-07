@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ActionCollection version="2" name="Plugins">
+  <Actions category="Plugins">
+    <text>AnimLayers</text>
+    <Action name="animlayers_play">
+      <icon></icon>
+      <text>Play</text>
+      <whatsThis>Start and stop animation</whatsThis>
+      <toolTip>Start and stop animation</toolTip>
+      <iconText></iconText>
+      <activationFlags></activationFlags>
+      <activationConditions></activationConditions>
+      <shortcut></shortcut>
+      <isCheckable>false</isCheckable>
+      <statusTip></statusTip>
+    </Action>
+    <Action name="animlayers_stepforth">
+      <icon></icon>
+      <text>Step forth</text>
+      <whatsThis>Step one frame forth</whatsThis>
+      <toolTip>Step one frame forth</toolTip>
+      <iconText></iconText>
+      <activationFlags></activationFlags>
+      <activationConditions></activationConditions>
+      <shortcut></shortcut>
+      <isCheckable>false</isCheckable>
+      <statusTip></statusTip>
+    </Action>
+        <Action name="animlayers_stepback">
+      <icon></icon>
+      <text>Step back</text>
+      <whatsThis>Step one frame back</whatsThis>
+      <toolTip>Step one frame back</toolTip>
+      <iconText></iconText>
+      <activationFlags></activationFlags>
+      <activationConditions></activationConditions>
+      <shortcut></shortcut>
+      <isCheckable>false</isCheckable>
+      <statusTip></statusTip>
+    </Action>
+  </Actions>
+</ActionCollection>
