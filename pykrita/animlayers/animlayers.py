@@ -1,4 +1,4 @@
-# AnimLayers version 1.1
+# AnimLayers version 1.2
 # https://github.com/thomaslynge/krita-plugins
 import sys
 import math
