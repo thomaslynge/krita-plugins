@@ -5,7 +5,7 @@ For now the home of my one and only Krita plugin named AnimLayers, where you can
 ## AnimLayers ##
 
 ### Install ###
-You install the plugin by placing the animlayers folder and animlayers.desktop file in your pykrita folder. You can find the pykrita folder in the menu by going to *Settings -> Manage Resources...* and press the *Open Resources Folder* button.
+You install the plugin by placing the animlayers folder and animlayers.desktop file in your pykrita folder. You can find the pykrita folder in the menu by going to *Settings -> Manage Resources...* and press the *Open Resources Folder* button. In the actions folder you should copy animlayers.action to your krita actions folder. 
 
 ### Instruction ###
 
