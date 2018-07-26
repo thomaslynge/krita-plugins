@@ -1,4 +1,4 @@
-# AnimLayers version 1.2
+# AnimLayers version 1.4
 # https://github.com/thomaslynge/krita-plugins
 import sys
 import math
@@ -53,7 +53,7 @@ class AnimLayersDocker(DockWidget):
 	def __init__(self):
 		super(AnimLayersDocker, self).__init__()
 
-		self.speedDef = 500
+		self.speedDef = 250
 		self.doc = None
 		self.dir = 1
 		self.frameIdx = -1
@@ -77,21 +77,21 @@ class AnimLayersDocker(DockWidget):
 		grid.setSpacing(10)
 		
 		row = 1
-		lblKey = QLabel("Key")
+		lblKey = QLabel(i18n("Key"))
 		self.txtKey = QLineEdit()
 		self.txtKey.setText("F")
 		grid.addWidget(lblKey, row, 0)
 		grid.addWidget(self.txtKey, row, 1)
 
-		btnGetKey = QPushButton("Get key")
+		btnGetKey = QPushButton(i18n("Get key"))
 		btnGetKey.clicked.connect(self.getKeyClicked)
 		grid.addWidget(btnGetKey, row, 2, 1, 2)
 		
 		row += 1
-		btnStepBack = QPushButton("<")
+		btnStepBack = QPushButton(i18n("<"))
 		btnStepBack.clicked.connect(self.stepBackClicked)
 		grid.addWidget(btnStepBack, row, 0, 1, 2)
-		btnStep = QPushButton(">")
+		btnStep = QPushButton(i18n(">"))
 		btnStep.clicked.connect(self.stepClicked)
 		grid.addWidget(btnStep, row, 2, 1, 2)
 		
@@ -103,15 +103,21 @@ class AnimLayersDocker(DockWidget):
 		
 		row += 1
 		self.cbLoop = QCheckBox()
-		self.cbLoop.setText("Pong loop")
+		self.cbLoop.setText(i18n("Pong loop"))
 		self.cbLoop.setChecked(True)
 		grid.addWidget(self.cbLoop, row, 0, 1, 2)
 
-		lblSpd = QLabel("Speed")
+		lblSpd = QLabel(i18n("Speed"))
 		grid.addWidget(lblSpd, row, 2, 1, 1)
 		self.txtSpeed = QLineEdit()
 		self.txtSpeed.setText(str(self.speedDef))
 		grid.addWidget(self.txtSpeed, row, 3, 1, 1)
+
+		row += 1
+		self.cbStepSel = QCheckBox()
+		self.cbStepSel.setText(i18n("Step select"))
+		self.cbStepSel.setChecked(True)
+		grid.addWidget(self.cbStepSel, row, 0, 1, 2)
 
 		row += 1
 		self.lbl = QLabel()
@@ -203,14 +209,13 @@ class AnimLayersDocker(DockWidget):
 				newIdx = min(lastIdx,1)
 			else:
 				newIdx = lastIdx
-
 		self.switchFrame(newIdx)
 	
 	def switchFrame(self, newIdx):
 		prevFrame = self.frames[self.frameIdx]
 		self.hideFrame(prevFrame)
 		self.frameIdx = newIdx
-		if self.playing == False:
+		if self.playing == False and self.cbStepSel.isChecked():
 			doc = Application.activeDocument()
 			if doc != None:
 				doc.setActiveNode(self.frames[self.frameIdx])
@@ -255,9 +260,9 @@ class AnimLayersDocker(DockWidget):
 
 	def updateBtnPlay(self):
 		if self.playing:
-			self.btnPlay.setText("Stop")
+			self.btnPlay.setText(i18n("Stop"))
 		else:
-			self.btnPlay.setText("Play")
+			self.btnPlay.setText(i18n("Play"))
 
 	def getKey(self):
 		return self.txtKey.text().strip().lower()
