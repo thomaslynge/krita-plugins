@@ -22,6 +22,7 @@ You animate a specific range of layers by prefixing the layer name with the same
 | *Play/Stop* | Start and stop the animation. |
 | *Pong loop* | If unchecked the animation runs from 0..n and starts over at frame 0. If checked the animation runs forth and back. |
 | *Speed* | The speed of the animation in milliseconds. 1000 is one second per frame. |
+| *Step select* | If not checked the selected layer will stay selected then stepping. |
 
 #### Shortcuts ####
 You can add shortcuts for Play and Step.
